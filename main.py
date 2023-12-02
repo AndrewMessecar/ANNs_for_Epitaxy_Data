@@ -61,7 +61,7 @@ latent_size = 100
 output_size = input_size
 lr = 0.0002
 batch_size = 64
-epochs = 1000000
+epochs = 1000
 
 # Initialize networks and optimizers
 generator = Generator(latent_size, output_size)
