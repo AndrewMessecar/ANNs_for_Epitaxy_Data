@@ -19,37 +19,38 @@ Training_Inputs, Testing_Inputs, Training_Output, Testing_Output = train_test_sp
 Validation_Data = Training_Data.iloc[ 1900: , : ]
 Validation_Inputs = Validation_Data.loc[ : , [ 'RF Plasma Power (W)' , 'Chamber Pressure (torr)' , 'N2 Flow Rate (sccm)' , 'N2 Regulator Pressure (PSIG)' , 'Aperture Setting' ] ]
 Validation_Output = Validation_Data.loc[ : , [ 'Ratio (Molecular/Atomic)' ] ]
+
 Input_Scaler = MinMaxScaler()
 Input_Scaler.fit( Training_Inputs )
 Training_Inputs = Input_Scaler.transform( Training_Inputs )
 Testing_Inputs = Input_Scaler.transform( Testing_Inputs )
 Validation_Inputs = Input_Scaler.transform( Validation_Inputs )
-First_Layer_Neurons = arange(1 , 10 , 1); # Second_Layer_Neurons = arange(1 , 10 , 1); Third_Layer_Neurons = arange(1 , 10 , 1)
-Hidden_Layer_Sizes = list( product( First_Layer_Neurons ) )
+First_Layer_Neurons = arange(1 , 10 , 1); Second_Layer_Neurons = arange(1 , 10 , 1); Third_Layer_Neurons = arange(1 , 10 , 1)
+Hidden_Layer_Sizes = list( product( First_Layer_Neurons , Second_Layer_Neurons ) )
 # Parameters = {'hidden_layer_sizes' : [ [ 1 , 9 ] , [ 1 , 9 ] , [ 1 , 9 ] ] , 'activation' : ('identity' , 'logistic' , 'tanh' , 'relu' ) , 'solver' : ( 'lbfgs' , 'sgd' , 'adam' ) , 'alpha' : [ 10 ** (-1) , 10 ** (-7) ] , 'batch_size' : [1 , 1520]}
-Parameters = { 'hidden_layer_sizes' : Hidden_Layer_Sizes } 
+Parameters = { 'hidden_layer_sizes' : Hidden_Layer_Sizes , 'activation' : ('identity' , 'logistic' , 'tanh' , 'relu' ) , 'solver' : ( 'lbfgs' , 'sgd' , 'adam' ) } 
 
-Artificial_Neural_Network = MLPRegressor( learning_rate = 'adaptive' , activation = 'tanh' , solver = 'lbfgs' , shuffle = 1 , verbose = 0 , early_stopping = 0 , max_iter = Maximum_Iterations , random_state = 42)
+Artificial_Neural_Network_Without_Early_Stopping = MLPRegressor( learning_rate = 'adaptive' , shuffle = 1 , verbose = 0 , early_stopping = 0 , max_iter = Maximum_Iterations , random_state = 42)
 
-Optimized_ANN = GridSearchCV( estimator = Artificial_Neural_Network , param_grid = Parameters , n_jobs = -1)
+Optimized_ANN_Without = GridSearchCV( estimator = Artificial_Neural_Network_Without_Early_Stopping , param_grid = Parameters , n_jobs = -1)
 
-Optimized_ANN.fit( Training_Inputs , Training_Output)
+Optimized_ANN_Without.fit( Training_Inputs , Training_Output)
+
+ANN_With_Early_Stopping = MLPRegressor( learning_rate = 'adaptive' , shuffle = 1 , verbose = 0 , early_stopping = 1 , max_iter = Maximum_Iterations , random_state = 42)
+
+Optimal_ANN_With = GridSearchCV( estimator = ANN_With_Early_Stopping , param_grid = Parameters , n_jobs = -1)
+
+Optimal_ANN_With.fit( Training_Inputs , Training_Output)
 
 print( "\n Results from Grid Search without Early Stopping " )
-print( "\n The best estimator across ALL searched params:\n" , Optimized_ANN.best_estimator_ , "\n")
-print( "\n The best score across ALL searched params:\n" , Optimized_ANN.best_score_ , "\n")
-print( "\n The best parameters across ALL searched params:\n" , Optimized_ANN.best_params_ , "\n")
-
-ANN = MLPRegressor( learning_rate = 'adaptive' , shuffle = 1 , verbose = 0 , early_stopping = 1 , max_iter = Maximum_Iterations , random_state = 42)
-
-Optimal_ANN = GridSearchCV( estimator = ANN , param_grid = Parameters , n_jobs = -1)
-
-Optimal_ANN.fit( Training_Inputs , Training_Output)
+print( "\n The best estimator across ALL searched params:\n" , Optimized_ANN_Without.best_estimator_ , "\n")
+print( "\n The best score across ALL searched params:\n" , Optimized_ANN_Without.best_score_ , "\n")
+print( "\n The best parameters across ALL searched params:\n" , Optimized_ANN_Without.best_params_ , "\n")
 
 print( "\n Results from Grid Search with Early Stopping " )
-print( "\n The best estimator across ALL searched params:\n" , Optimal_ANN.best_estimator_ , "\n")
-print( "\n The best score across ALL searched params:\n" , Optimal_ANN.best_score_ , "\n")
-print( "\n The best parameters across ALL searched params:\n" , Optimal_ANN.best_params_ , "\n")
+print( "\n The best estimator across ALL searched params:\n" , Optimal_ANN_With.best_estimator_ , "\n")
+print( "\n The best score across ALL searched params:\n" , Optimal_ANN_With.best_score_ , "\n")
+print( "\n The best parameters across ALL searched params:\n" , Optimal_ANN_With.best_params_ , "\n")
 
 # Mapping_Data = pd.read_csv(r'# Path to Mapping Data')
 # Map_Space = pd.DataFrame( Mapping_Data, columns = [ 'RF Plasma Power (W)' , 'Chamber Pressure (torr)' , 'N2 Flow Rate (sccm)' , 'N2 Regulator Pressure (PSIG)' , 'Aperture Setting' ] )
